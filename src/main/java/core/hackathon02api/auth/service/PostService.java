@@ -1,10 +1,8 @@
 package core.hackathon02api.auth.service;
 
+import core.hackathon02api.auth.dto.*;
 import core.hackathon02api.auth.entity.User;
 import core.hackathon02api.auth.repository.UserRepository;
-import core.hackathon02api.auth.dto.PostCreateRequest;
-import core.hackathon02api.auth.dto.PostResponse;
-import core.hackathon02api.auth.dto.PostUpdateRequest;
 import core.hackathon02api.auth.entity.Post;
 import core.hackathon02api.auth.entity.PostStatus;
 import core.hackathon02api.auth.repository.PostRepository;
@@ -83,5 +81,33 @@ public class PostService {
             throw new IllegalStateException("작성자만 삭제 가능");
         }
         p.setStatus(PostStatus.DELETED); // 소프트 삭제
+    }
+
+    public PostDetailResponse getPostDetail(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+
+        PostDetailResponse response = new PostDetailResponse();
+        response.setId(post.getId());
+
+        // 작성자 매핑
+        AuthorResponse authorDto = new AuthorResponse();
+        authorDto.setId(post.getAuthor().getId());
+        authorDto.setNickname(post.getAuthor().getNickname());
+        authorDto.setRoadAddress(post.getAuthor().getRoadAddress()); // 추가!
+        response.setAuthor(authorDto);
+
+        response.setTitle(post.getTitle());
+        response.setCategory(post.getCategory());
+        response.setProductName(post.getProductName());
+        response.setProductUrl(post.getProductUrl());
+        response.setProductDesc(post.getProductDesc());
+        response.setDesiredMemberCount(post.getDesiredMemberCount());
+        response.setContent(post.getContent());
+        response.setMainImageUrl(post.getMainImageUrl());
+        response.setStatus(String.valueOf(post.getStatus()));
+        response.setCreatedAt(post.getCreatedAt());
+
+        return response;
     }
 }
