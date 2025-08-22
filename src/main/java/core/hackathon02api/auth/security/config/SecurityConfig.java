@@ -28,6 +28,7 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/actuator/health").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/posts/**").permitAll() // ✅ 공개 조회
                         .anyRequest().authenticated()
                 );
 
