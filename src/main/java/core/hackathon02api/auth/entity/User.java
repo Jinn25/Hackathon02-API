@@ -1,0 +1,38 @@
+package core.hackathon02api.auth.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.List;
+
+@Entity
+@Table(name = "users") // DB 테이블명
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;  // 회원 고유 ID
+
+    @Column(nullable = false, unique = true)
+    private String username; // 아이디
+
+    @Column(nullable = false)
+    private String passwordHash; // 비밀번호 (BCrypt 해시)
+
+    @Column(nullable = false, unique = true)
+    private String nickname; // 닉네임
+
+    private String gender;     // 성별 (MALE/FEMALE/OTHER)
+
+    private String ageRange;   // 연령대 (TEEN, 20s, 30s ...)
+
+    private String roadAddress; // 사는 곳
+
+    @Lob
+    private String interestsJson; // 관심사 JSON 배열 (문자열로 저장)
+}
