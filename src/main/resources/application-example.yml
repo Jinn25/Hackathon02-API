@@ -1,0 +1,46 @@
+server:
+  port: 8080
+
+spring:
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/hackathon?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8&serverTimezone=Asia/Seoul
+    username: root
+    password: "본인 비번"  # 본인 로컬 설정에 맞게 변경
+
+  jpa:
+    hibernate:
+      ddl-auto: update         # 개발 초기엔 create 또는 create-drop도 가능
+    open-in-view: false
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+
+  jackson:
+    time-zone: Asia/Seoul
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
+
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 40MB
+
+logging:
+  level:
+    root: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+app:
+  jwt:
+    secret: your-very-secret-key-for-hackathon
+    expiration: 3600000  # 1시간
+  cors:
+    allowed-origins: "http://localhost:3000"
+  security:
+    x-user:
+      enabled: true

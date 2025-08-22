@@ -35,3 +35,9 @@ out/
 
 ### VS Code ###
 .vscode/
+
+#### aplication.yml (민감 정보)
+application-local.yml
+
+# 예시 파일은 포함시키기
+!application-example.yml
