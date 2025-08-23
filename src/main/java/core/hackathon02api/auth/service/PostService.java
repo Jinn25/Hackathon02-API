@@ -2,6 +2,7 @@ package core.hackathon02api.auth.service;
 
 import core.hackathon02api.auth.dto.*;
 import core.hackathon02api.auth.entity.User;
+import core.hackathon02api.auth.repository.PostApplicationRepository;
 import core.hackathon02api.auth.repository.UserRepository;
 import core.hackathon02api.auth.entity.Post;
 import core.hackathon02api.auth.entity.PostStatus;
@@ -19,6 +20,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final PostApplicationRepository postApplicationRepository;
 
     public PostResponse create(Long authorId, PostCreateRequest req) {
         User author = userRepository.findById(authorId)
@@ -37,19 +39,29 @@ public class PostService {
                 .imageUrls(req.getImageUrls())
                 .build();
 
-        return PostResponse.of(postRepository.save(post));
+        return PostResponse.of(postRepository.save(post),0);
     }
 
     @Transactional(readOnly = true)
     public PostResponse get(Long id) {
         Post p = postRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
-        return PostResponse.of(p);
+        int current = (int) postApplicationRepository.countByPost_Id(id); // ✅
+        return PostResponse.of(p,current);
     }
 
+//    @Transactional(readOnly = true)
+//    public Page<PostResponse> list(Pageable pageable) {
+//        return postRepository.findAll(pageable).map(PostResponse::of);
+//    }
     @Transactional(readOnly = true)
     public Page<PostResponse> list(Pageable pageable) {
-        return postRepository.findAll(pageable).map(PostResponse::of);
+        return postRepository.findAll(pageable)
+                .map(p -> PostResponse.of(
+                        p,
+                        (int) postApplicationRepository.countByPost_Id(p.getId()) // ✅ 간단 버전
+                ));
+        // ※ 성능 최적화 필요하면 추후 postIds로 group by count 쿼리 한 번에 가져오도록 개선
     }
 
     public PostResponse update(Long id, Long requesterId, PostUpdateRequest req) {
@@ -70,8 +82,9 @@ public class PostService {
         if (req.getMainImageUrl() != null) p.setMainImageUrl(req.getMainImageUrl());
         if (req.getImageUrls() != null) p.setImageUrls(req.getImageUrls());
         if (req.getStatus() != null) p.setStatus(PostStatus.valueOf(req.getStatus()));
+        int current = (int) postApplicationRepository.countByPost_Id(p.getId()); // ✅
 
-        return PostResponse.of(p);
+        return PostResponse.of(p,current);
     }
 
     public void softDelete(Long id, Long requesterId) {
@@ -86,6 +99,8 @@ public class PostService {
     public PostDetailResponse getPostDetail(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+
+        long currentCount = postApplicationRepository.countByPost_Id(postId);  // ✅ 신청 인원 조회
 
         PostDetailResponse response = new PostDetailResponse();
         response.setId(post.getId());
@@ -103,6 +118,7 @@ public class PostService {
         response.setProductUrl(post.getProductUrl());
         response.setProductDesc(post.getProductDesc());
         response.setDesiredMemberCount(post.getDesiredMemberCount());
+        response.setCurrentMemberCount((int)currentCount);   // ✅ 여기 추가
         response.setContent(post.getContent());
         response.setMainImageUrl(post.getMainImageUrl());
         response.setStatus(String.valueOf(post.getStatus()));

@@ -17,6 +17,7 @@ public class PostDetailResponse {
     private String productUrl;
     private String productDesc;
     private Integer desiredMemberCount;
+    private Integer currentMemberCount;
     private String content;
     private String mainImageUrl;
     private String status;

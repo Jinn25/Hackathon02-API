@@ -29,6 +29,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/actuator/health").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/posts/**").permitAll() // ✅ 공개 조회
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/posts/**").permitAll()
+                        .requestMatchers("/api/posts/*/applications/**").permitAll()
                         .anyRequest().authenticated()
                 );
 

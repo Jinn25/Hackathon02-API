@@ -5,7 +5,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-
+/**
+ * 실제 post get 요청 날렸을 때 사용하는 클래스
+ * postdetail은 어디서 쓰는지 모르겠다...
+ * */
 @Getter @Setter
 public class PostResponse {
     private Long id;
@@ -16,13 +19,14 @@ public class PostResponse {
     private String productUrl;
     private String productDesc;
     private Integer desiredMemberCount;
+    private Integer currentMemberCount;
     private String content;
     private String mainImageUrl;
     private String status;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDateTime createdAt;
 
-    public static PostResponse of(core.hackathon02api.auth.entity.Post p) {
+    public static PostResponse of(core.hackathon02api.auth.entity.Post p,int currentCount) {
         PostResponse res = new PostResponse();
         res.setId(p.getId());
 
@@ -38,6 +42,7 @@ public class PostResponse {
         res.setProductUrl(p.getProductUrl());
         res.setProductDesc(p.getProductDesc());
         res.setDesiredMemberCount(p.getDesiredMemberCount());
+        res.setCurrentMemberCount(currentCount);
         res.setContent(p.getContent());
         res.setMainImageUrl(p.getMainImageUrl());
         res.setStatus(String.valueOf(p.getStatus()));
