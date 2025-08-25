@@ -34,8 +34,11 @@ public interface PostApplicationRepository extends JpaRepository<PostApplication
         Long getPostId();
         long getCnt();
     }
-    // postId + applicantId + status 리스트로 존재 여부 확인
-    boolean existsByPost_IdAndApplicant_IdAndStatusIn(Long postId, Long applicantId, List<ApplicationStatus> statuses);
 
+    boolean existsByPost_IdAndApplicant_IdAndStatusIn(
+            Long postId,
+            Long applicantId,
+            List<ApplicationStatus> statuses
+    );
 
 }
