@@ -31,7 +31,9 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/posts/**").permitAll() // ✅ 공개 조회
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/posts/**").permitAll()
                         .requestMatchers("/api/posts/*/applications/**").permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/api/notifications/**").authenticated() // 알림은 인증 필요
+                        .anyRequest().permitAll()
+//                        .anyRequest().authenticated()
                 );
 
         http.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
