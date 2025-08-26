@@ -1,8 +1,12 @@
 package core.hackathon02api.auth.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Collections;
 import java.util.List;
 
 @Entity
@@ -33,6 +37,21 @@ public class User {
 
     private String roadAddress; // 사는 곳
 
-    @Lob
-    private String interestsJson; // 관심사 JSON 배열 (문자열로 저장)
+    @Transient
+    private List<String> interests;
+
+    @JsonIgnore // DB에 저장된 원본 JSON은 응답에 안 보이게
+    private String interestsJson;
+
+    @PostLoad
+    private void loadInterests() {
+        if (interestsJson != null) {
+            try {
+                ObjectMapper om = new ObjectMapper();
+                this.interests = om.readValue(interestsJson, new TypeReference<>() {});
+            } catch (Exception e) {
+                this.interests = Collections.emptyList();
+            }
+        }
+    }
 }
