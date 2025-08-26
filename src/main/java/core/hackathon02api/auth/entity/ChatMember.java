@@ -10,7 +10,7 @@ import java.time.OffsetDateTime;
 @Entity @Table(name="chat_member", uniqueConstraints = {
         @UniqueConstraint(name="uk_room_user", columnNames = {"room_id","user_id"})
 })
-@Getter @Builder @NoArgsConstructor @AllArgsConstructor
+@Getter @Builder @NoArgsConstructor @AllArgsConstructor @Setter
 public class ChatMember {
 
     public enum Role { HOST, MEMBER }
