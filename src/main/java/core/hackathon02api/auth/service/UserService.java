@@ -55,7 +55,8 @@ public class UserService {
                 .roadAddress(roadAddress)
                 .interestsJson(interestsJson)
                 .build();
-
+        User saved = userRepository.save(user);
+        saved.setInterests(interests);
         return userRepository.save(user);
     }
 }
