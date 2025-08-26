@@ -8,6 +8,13 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.Comparator;
+import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
@@ -34,4 +41,11 @@ public class ChatMessageController {
     public void sendMessage(@DestinationVariable Long roomId, ChatMessageDto dto) {
         chatMessageService.saveAndBroadcast(roomId, dto);
     }
+
+    @GetMapping("/chatrooms/{roomId}/messages")
+    @ResponseBody
+    public List<ChatMessageDto> getMessages(@PathVariable Long roomId) {
+        return chatMessageService.findRecentMessagesDto(roomId, 50);
+    }
+
 }
