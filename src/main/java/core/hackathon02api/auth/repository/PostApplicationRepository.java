@@ -18,31 +18,42 @@ public interface PostApplicationRepository extends JpaRepository<PostApplication
 
     Optional<PostApplication> findByPost_IdAndApplicant_Id(Long postId, Long applicantId);
 
-    // 특정 게시글의 승인 인원 수
     long countByPost_IdAndStatusIn(Long postId, Collection<ApplicationStatus> statuses);
 
-    // 여러 게시글의 승인 인원 수를 group by로
     interface PostCountProjection {
         Long getPostId();
         long getCnt();
     }
 
+    // ✅ 문제의 메서드: 파생쿼리 금지, @Query로 명시
     @Query("""
         select pa.post.id as postId, count(pa.id) as cnt
         from PostApplication pa
         where pa.post.id in :postIds and pa.status in :statuses
         group by pa.post.id
     """)
-    List<PostCountProjection> countByPostIdsAndStatusIn(@Param("postIds") Collection<Long> postIds,
-                                                        @Param("statuses") Collection<ApplicationStatus> statuses);
+    List<PostCountProjection> countApprovedByPostIds(
+            @Param("postIds") Collection<Long> postIds,
+            @Param("statuses") Collection<ApplicationStatus> statuses
+    );
 
-    // 추가 메서드들
+    // (원하면 유지) 동의어 메서드 — 같은 @Query 재사용 가능
+    @Query("""
+        select pa.post.id as postId, count(pa.id) as cnt
+        from PostApplication pa
+        where pa.post.id in :postIds and pa.status in :statuses
+        group by pa.post.id
+    """)
+    List<PostCountProjection> countByPostIdsAndStatusIn(
+            @Param("postIds") Collection<Long> postIds,
+            @Param("statuses") Collection<ApplicationStatus> statuses
+    );
+
     List<PostApplication> findAllByPost_IdAndStatusIn(Long postId, Collection<ApplicationStatus> statuses);
 
-    boolean existsByPost_IdAndApplicant_IdAndStatusIn(Long postId,
-                                                      Long applicantId,
-                                                      List<ApplicationStatus> statuses);
-           
-    List<PostCountProjection> countApprovedByPostIds(Collection<Long> postIds, Collection<ApplicationStatus> statuses);
-    List<PostApplication> findAllByPost_IdAndStatusIn(Long postId, Collection<ApplicationStatus> statuses);
+    boolean existsByPost_IdAndApplicant_IdAndStatusIn(
+            Long postId,
+            Long applicantId,
+            List<ApplicationStatus> statuses
+    );
 }
