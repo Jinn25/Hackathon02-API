@@ -20,7 +20,13 @@ public class ChatHistoryController {
     public List<ChatMessageDto> getMessages(@PathVariable Long roomId) {
         return chatMessageService.findRecentMessages(roomId, 50) // 최근 50개
                 .stream()
-                .map(m -> new ChatMessageDto(m.getRoom().getId(), m.getSender().getId(), m.getContent(), m.getCreatedAt().toLocalDateTime()))
+                .map(m -> new ChatMessageDto(
+                        m.getRoom().getId(),
+                        m.getSender().getId(),
+                        m.getSender().getNickname(),
+                        m.getContent(),
+                        m.getCreatedAt().toLocalDateTime()
+                ))
                 .toList();
     }
 }

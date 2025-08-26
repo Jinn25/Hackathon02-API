@@ -48,6 +48,7 @@ public class ChatMessageService {
                 new ChatMessageDto(
                         roomId,
                         sender.getId(),
+                        sender.getNickname(),
                         message.getContent(),
                         message.getCreatedAt().toLocalDateTime()
                 )
