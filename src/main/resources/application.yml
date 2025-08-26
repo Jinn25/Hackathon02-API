@@ -9,9 +9,9 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${DB_HOST}:${DB_PORT:3306}/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8&serverTimezone=Asia/Seoul
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:mysql://${MYSQLHOST:${DB_HOST}}:${MYSQLPORT:${DB_PORT:3306}}/${MYSQLDATABASE:${DB_NAME}}?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8&serverTimezone=Asia/Seoul
+    username: ${MYSQLUSER:${DB_USERNAME}}
+    password: ${MYSQLPASSWORD:${DB_PASSWORD}}
 
   jpa:
     hibernate:
