@@ -44,14 +44,19 @@ public class User {
     private String interestsJson;
 
     @PostLoad
-    private void loadInterests() {
-        if (interestsJson != null) {
-            try {
-                ObjectMapper om = new ObjectMapper();
-                this.interests = om.readValue(interestsJson, new TypeReference<>() {});
-            } catch (Exception e) {
+    @PostPersist
+    @PostUpdate
+    private void hydrateInterests() {
+        try {
+            if (interestsJson == null || interestsJson.isBlank()) {
                 this.interests = Collections.emptyList();
+            } else {
+                ObjectMapper om = new ObjectMapper();
+                this.interests = om.readValue(interestsJson,
+                        new com.fasterxml.jackson.core.type.TypeReference<List<String>>() {});
             }
+        } catch (Exception e) {
+            this.interests = Collections.emptyList(); // 실패해도 빈 리스트
         }
     }
 }
