@@ -12,26 +12,24 @@ import java.util.Optional;
 
 public interface PostApplicationRepository extends JpaRepository<PostApplication, Long> {
 
-    // ── 기존 메서드(유지) ─────────────────────────────────────────────
     long countByPost_Id(Long postId);
     boolean existsByPost_IdAndApplicant_Id(Long postId, Long applicantId);
     Optional<PostApplication> findByPost_IdAndApplicant_Id(Long postId, Long applicantId);
 
-    // ── 신규: 승인 상태만 카운트 (현재 인원 계산용) ───────────────────
+    // 특정 게시글의 승인 인원 수
     long countByPost_IdAndStatusIn(Long postId, Collection<ApplicationStatus> statuses);
 
-    // ── (옵션) 목록 최적화: 여러 postId를 한 번에 group by로 카운트 ──
+    // 여러 게시글의 승인 인원 수를 group by로
+    interface PostCountProjection {
+        Long getPostId();
+        long getCnt();
+    }
     @Query("""
         select pa.post.id as postId, count(pa.id) as cnt
         from PostApplication pa
         where pa.post.id in :postIds and pa.status in :statuses
         group by pa.post.id
     """)
-    List<PostCountProjection> countByPostIdsAndStatusIn(@Param("postIds") Collection<Long> postIds,
-                                                        @Param("statuses") Collection<ApplicationStatus> statuses);
-
-    interface PostCountProjection {
-        Long getPostId();
-        long getCnt();
-    }
+    List<PostCountProjection> countApprovedByPostIds(Collection<Long> postIds, Collection<ApplicationStatus> statuses);
+    List<PostApplication> findAllByPost_IdAndStatusIn(Long postId, Collection<ApplicationStatus> statuses);
 }
