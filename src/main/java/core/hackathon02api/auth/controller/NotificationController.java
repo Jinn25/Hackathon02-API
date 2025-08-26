@@ -26,36 +26,36 @@ public class NotificationController {
     // 알림 목록 (무한 스크롤, hasMore 없음)
     @GetMapping
     public NotificationListResponse list(
-            @AuthenticationPrincipal(expression = "id") Long userId,
+            //@AuthenticationPrincipal(expression = "id") Long userId,
             Authentication auth,
             @RequestParam(required = false) Long lastId,
             @RequestParam(required = false) Integer limit,
             @RequestParam(required = false) Boolean isRead,
             @RequestParam(required = false) List<NotificationType> type
     ) {
-        Long uid = resolveUserId(userId, auth);
+        Long uid = resolveUserId(null, auth);
         return notificationService.list(uid, lastId, limit, isRead, type);
     }
 
     // 알림 읽음 처리
     @PostMapping("/{notificationId}/read")
     public NotificationItemResponse markRead(
-            @AuthenticationPrincipal(expression = "id") Long userId,
+            //@AuthenticationPrincipal(expression = "id") Long userId,
             Authentication auth,
             @PathVariable Long notificationId
     ) {
-        Long uid = resolveUserId(userId, auth);
+        Long uid = resolveUserId(null, auth);
         return notificationService.markRead(uid, notificationId);
     }
 
     // 새로고침 폴링
     @GetMapping("/updates")
     public NotificationUpdatesResponse updates(
-            @AuthenticationPrincipal(expression = "id") Long userId,
+            //@AuthenticationPrincipal(expression = "id") Long userId,
             Authentication auth,
             @RequestParam Instant since
     ) {
-        Long uid = resolveUserId(userId, auth);
+        Long uid = resolveUserId(null, auth);
         return notificationService.updates(uid, since);
     }
 
