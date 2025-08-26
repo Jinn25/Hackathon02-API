@@ -22,30 +22,25 @@ public class UserService {
     public User registerUser(String username, String rawPassword, String nickname,
                              String gender, String ageRange, String roadAddress, List<String> interests) {
 
-        // 아이디 중복 확인
         if (userRepository.existsByUsername(username)) {
             throw new RuntimeException("이미 사용중인 아이디입니다.");
         }
-
-        // 닉네임 중복 확인
         if (userRepository.existsByNickname(nickname)) {
             throw new RuntimeException("이미 사용중인 닉네임입니다.");
         }
 
-        // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(rawPassword);
 
-        // 관심사 JSON 문자열 변환 후 엔티티 저장
+        // 예외 처리 추가
         String interestsJson = null;
         try {
             if (interests != null) {
                 interestsJson = objectMapper.writeValueAsString(interests);
             }
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("관심사 형식이 올바르지 않습니다.");
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            throw new RuntimeException("관심사 형식이 올바르지 않습니다.", e);
         }
 
-        // 유저 생성
         User user = User.builder()
                 .username(username)
                 .passwordHash(encodedPassword)
@@ -55,8 +50,11 @@ public class UserService {
                 .roadAddress(roadAddress)
                 .interestsJson(interestsJson)
                 .build();
+
         User saved = userRepository.save(user);
+
+        // 응답용 transient 필드 채워주기
         saved.setInterests(interests);
-        return userRepository.save(user);
+        return saved;
     }
 }

@@ -25,6 +25,7 @@ public class User {
     @Column(nullable = false, unique = true)
     private String username; // 아이디
 
+    @JsonIgnore
     @Column(nullable = false)
     private String passwordHash; // 비밀번호 (BCrypt 해시)
 
@@ -41,22 +42,7 @@ public class User {
     private List<String> interests;
 
     @JsonIgnore // DB에 저장된 원본 JSON은 응답에 안 보이게
+    @Lob
     private String interestsJson;
 
-    @PostLoad
-    @PostPersist
-    @PostUpdate
-    private void hydrateInterests() {
-        try {
-            if (interestsJson == null || interestsJson.isBlank()) {
-                this.interests = Collections.emptyList();
-            } else {
-                ObjectMapper om = new ObjectMapper();
-                this.interests = om.readValue(interestsJson,
-                        new com.fasterxml.jackson.core.type.TypeReference<List<String>>() {});
-            }
-        } catch (Exception e) {
-            this.interests = Collections.emptyList(); // 실패해도 빈 리스트
-        }
-    }
 }
