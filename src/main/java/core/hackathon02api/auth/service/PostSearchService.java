@@ -65,7 +65,7 @@ public class PostSearchService {
                     p.getTitle(),
                     p.getCategory(),
                     p.getProductName(),
-                    price,
+                    p.getProductDesc(),
                     imageUrl,
                     current,
                     desired,

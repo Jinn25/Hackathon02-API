@@ -5,7 +5,7 @@ public record PostSearchItemResponse(
         String title,
         String category,
         String productName,
-        Long price,          // Post.price 없으면 null
+        String productDesc,          // Post.price 없으면 null
         String imageUrl,     // mainImageUrl -> imageUrls[0] -> null
         Integer currentMemberCount, // 작성자 1 + 승인 수
         Integer desiredMemberCount,
