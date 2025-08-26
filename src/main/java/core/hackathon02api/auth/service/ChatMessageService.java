@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -64,4 +65,23 @@ public class ChatMessageService {
                 PageRequest.of(0, limit) // limit 개수만큼
         );
     }
+
+    @Transactional
+    public List<ChatMessageDto> findRecentMessagesDto(Long roomId, int limit) {
+        return chatMessageRepository.findByRoom_IdOrderByCreatedAtDesc(
+                        roomId,
+                        PageRequest.of(0, limit)
+                ).stream()
+                .map(m -> new ChatMessageDto(
+                        m.getRoom().getId(),
+                        m.getSender().getId(),
+                        m.getSender().getNickname(),
+                        m.getContent(),
+                        m.getCreatedAt().toLocalDateTime()
+                ))
+                .sorted(Comparator.comparing(ChatMessageDto::getCreatedAt)) // 오래된 것 → 최신 순
+                .toList();
+    }
+
+
 }
