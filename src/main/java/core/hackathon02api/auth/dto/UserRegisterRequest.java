@@ -3,6 +3,8 @@ package core.hackathon02api.auth.dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 
@@ -14,6 +16,6 @@ public class UserRegisterRequest {
     private String gender;
     private String ageRange;
     private String roadAddress;
-    private String interestsJson;
+    private List<String> interests;
 
 }

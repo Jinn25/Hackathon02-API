@@ -1,10 +1,14 @@
 package core.hackathon02api.auth.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import core.hackathon02api.auth.entity.User;
 import core.hackathon02api.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -12,10 +16,11 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ObjectMapper objectMapper;
 
     // 회원가입
     public User registerUser(String username, String rawPassword, String nickname,
-                             String gender, String ageRange, String roadAddress, String interestsJson) {
+                             String gender, String ageRange, String roadAddress, List<String> interests) {
 
         // 아이디 중복 확인
         if (userRepository.existsByUsername(username)) {
@@ -29,6 +34,16 @@ public class UserService {
 
         // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(rawPassword);
+
+        // 관심사 JSON 문자열 변환 후 엔티티 저장
+        String interestsJson = null;
+        try {
+            if (interests != null) {
+                interestsJson = objectMapper.writeValueAsString(interests);
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("관심사 형식이 올바르지 않습니다.");
+        }
 
         // 유저 생성
         User user = User.builder()
