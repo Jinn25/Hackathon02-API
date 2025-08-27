@@ -69,7 +69,7 @@ public class PostApplicationService {
                         .build()
         );
 
-        // 🔔 호스트에게 "신청(자동 승인)" 알림
+        // 호스트에게 "신청(자동 승인)" 알림
         int currentWithAuthor = currentCountWithAuthor(postId);
         int desired = Optional.ofNullable(post.getDesiredMemberCount()).orElse(0);
         notificationService.notify(
