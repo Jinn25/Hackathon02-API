@@ -2,6 +2,7 @@ package core.hackathon02api.auth.repository;
 
 import core.hackathon02api.auth.entity.PostApplication;
 import core.hackathon02api.auth.entity.ApplicationStatus;
+import core.hackathon02api.auth.entity.PostStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -56,4 +57,26 @@ public interface PostApplicationRepository extends JpaRepository<PostApplication
             Long applicantId,
             List<ApplicationStatus> statuses
     );
+
+    //마이페이지 신청됨서비스에 사용되는 것
+    List<PostApplication> findAllByApplicant_IdAndStatusIn(Long userId, List<ApplicationStatus> statuses);
+
+    //마이페이지
+    List<PostApplication> findAllByApplicant_IdAndPost_Status(Long userId, core.hackathon02api.auth.entity.PostStatus status);
+
+    // 현재 인원 계산용 (승인/참여자 수)
+    long countByPost_IdAndStatusIn(Long postId, List<ApplicationStatus> statuses);
+
+    // 신청중: 내가 APPROVED 이고, 게시글이 OPEN
+    List<PostApplication> findAllByApplicant_IdAndStatusAndPost_Status(
+            Long userId, ApplicationStatus status, PostStatus postStatus
+    );
+
+//    // 완료됨: 내가 APPROVED 이고, 게시글이 FULL
+//    List<PostApplication> findAllByApplicant_IdAndStatusAndPost_Status(
+//            Long userId, ApplicationStatus status, PostStatus postStatus
+//    );
+
+
+
 }
