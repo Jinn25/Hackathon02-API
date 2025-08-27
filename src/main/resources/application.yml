@@ -55,3 +55,11 @@ app:
   jwt:
     secret: ${JWT_SECRET}                # 매우 긴 문자열(32바이트 이상)
     expiration: ${JWT_EXP:3600000}   # <- JWT_EXP 환경변수 그대로 매핑
+
+aws:
+  s3:
+    bucket: hackathon02-images
+    region: us-east-2
+    public-base: https://hackathon02-images.s3.us-east-2.amazonaws.com
+    access-key: ${AWS_ACCESS_KEY_ID}
+    secret-key: ${AWS_SECRET_ACCESS_KEY}

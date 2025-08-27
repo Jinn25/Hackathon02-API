@@ -53,6 +53,8 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
+    //이미지 url 관련 의존성
+    implementation 'software.amazon.awssdk:s3:2.20.160'   // AWS SDK v2 (권장)
 }
 
 tasks.named('test') {
