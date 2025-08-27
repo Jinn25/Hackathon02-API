@@ -60,14 +60,67 @@ public class NotificationService {
 
     @Transactional(readOnly = true)
     public NotificationUpdatesResponse updates(Long userId, Instant since) {
-        var items = notificationRepository
-                .findByUserIdAndCreatedAtAfterOrderByCreatedAtDesc(userId, since)
-                .stream()
-                .map(n -> new NotificationItemResponse(
-                        n.getId(), n.getType().name(), n.getTitle(), n.getMessage(), n.getRefPostId(),
-                        null, null, null, null, null,
-                        n.isRead(), n.getCreatedAt()))
+        // 1) 새 알림 조회
+        List<Notification> rows = notificationRepository
+                .findByUserIdAndCreatedAtAfterOrderByCreatedAtDesc(userId, since);
+
+        // 2) refPostId 모아 한번에 포스트/인원수 로딩
+        List<Long> postIds = rows.stream()
+                .map(Notification::getRefPostId)
+                .filter(Objects::nonNull)
+                .distinct()
                 .toList();
+
+        Map<Long, Post> postsById = postIds.isEmpty()
+                ? Map.of()
+                : postRepository.findAllById(postIds).stream()
+                .collect(Collectors.toMap(Post::getId, p -> p));
+
+        Map<Long, Integer> currentByPost = postIds.isEmpty() ? Map.of() :
+                postApplicationRepository.countApprovedByPostIds(postIds, COUNT_STATUSES).stream()
+                        .collect(Collectors.toMap(
+                                PostApplicationRepository.PostCountProjection::getPostId,
+                                prj -> (int) (prj.getCnt() + 1) // 작성자 +1
+                        ));
+
+        // 3) 확장 필드 채워서 DTO 매핑
+        List<NotificationItemResponse> items = rows.stream().map(n -> {
+            Post p = n.getRefPostId() == null ? null : postsById.get(n.getRefPostId());
+            String postTitle = p != null ? p.getTitle() : null;
+            Integer desired = p != null ? Optional.ofNullable(p.getDesiredMemberCount()).orElse(0) : null;
+            Integer current = p != null ? currentByPost.getOrDefault(p.getId(), null) : null;
+
+            String productDesc = null;
+            if (p != null) {
+                try {
+                    var m = Post.class.getMethod("getProductDesc");
+                    Object v = m.invoke(p);
+                    if (v instanceof String s) productDesc = s;
+                } catch (Exception ignore) {}
+            }
+
+            String imageUrl = null;
+            if (p != null) {
+                if (p.getMainImageUrl() != null && !p.getMainImageUrl().isBlank()) {
+                    imageUrl = p.getMainImageUrl();
+                }
+            }
+
+            return new NotificationItemResponse(
+                    n.getId(),
+                    n.getType().name(),
+                    n.getTitle(),
+                    n.getMessage(),
+                    n.getRefPostId(),
+                    postTitle,
+                    current,
+                    desired,
+                    productDesc,
+                    imageUrl,
+                    n.isRead(),
+                    n.getCreatedAt()
+            );
+        }).toList();
 
         long unread = notificationRepository.countByUserIdAndIsReadFalse(userId);
         return NotificationUpdatesResponse.builder()
@@ -77,20 +130,6 @@ public class NotificationService {
                 .build();
     }
 
-    @Transactional
-    public Long notify(Long userId, NotificationType type, String title, String message, Long refPostId) {
-        Notification saved = notificationRepository.save(
-                Notification.builder()
-                        .userId(userId)
-                        .type(type)
-                        .title(title)
-                        .message(message)
-                        .refPostId(refPostId)
-                        .isRead(false)
-                        .build()
-        );
-        return saved.getId();
-    }
 
     @Transactional(readOnly = true)
     public long countUnread(Long userId) {
@@ -159,4 +198,21 @@ public class NotificationService {
 
         return new NotificationListResponse(items);
     }
+
+    // NotificationService 내부에 추가
+    @Transactional
+    public Long notify(Long userId, NotificationType type, String title, String message, Long refPostId) {
+        Notification saved = notificationRepository.save(
+                Notification.builder()
+                        .userId(userId)
+                        .type(type)
+                        .title(title)
+                        .message(message)
+                        .refPostId(refPostId)
+                        .isRead(false)
+                        .build()
+        );
+        return saved.getId();
+    }
+
 }
