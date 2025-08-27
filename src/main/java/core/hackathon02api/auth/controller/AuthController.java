@@ -1,6 +1,7 @@
 package core.hackathon02api.auth.controller;
 
 import core.hackathon02api.auth.dto.LoginRequest;
+import org.springframework.security.core.Authentication;
 import core.hackathon02api.auth.dto.LoginResponse;
 import core.hackathon02api.auth.dto.UserRegisterRequest;
 import core.hackathon02api.auth.entity.User;
@@ -65,6 +66,30 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
         LoginResponse resp = authService.login(request.getUsername(), request.getPassword());
+        return ResponseEntity.ok(resp);
+    }
+
+    // 내 정보 조회
+    @GetMapping("/me")
+    public ResponseEntity<Map<String, Object>> me(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "인증되지 않은 사용자입니다."));
+        }
+
+        // username으로 DB 조회
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        // 필요한 정보만 반환
+        Map<String, Object> resp = Map.of(
+                "username", user.getUsername(),
+                "nickname", user.getNickname(),
+                "interests", user.getInterests(),
+                "address", user.getRoadAddress()
+        );
+
         return ResponseEntity.ok(resp);
     }
 
