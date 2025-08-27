@@ -3,13 +3,15 @@ package core.hackathon02api.auth.controller;
 import core.hackathon02api.auth.dto.PostCreateRequest;
 import core.hackathon02api.auth.dto.PostResponse;
 import core.hackathon02api.auth.dto.PostUpdateRequest;
+import core.hackathon02api.auth.entity.PostStatus;
 import core.hackathon02api.auth.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -31,14 +33,22 @@ public class PostController {
         return postService.get(id);
     }
 
-    // 페이지 목록
+    // 전체 목록 (Full-Fetch)
+    // 필요하면 상태 필터를 쉼표로: ?statuses=OPEN,FULL
     @GetMapping
-    public Page<PostResponse> list(@RequestParam(defaultValue = "0") int page,
-                                   @RequestParam(defaultValue = "20") int size) {
-        return postService.list(PageRequest.of(page, size));
+    public List<PostResponse> list(@RequestParam(required = false) String statuses) {
+        List<PostStatus> statusFilters = null;
+        if (statuses != null && !statuses.isBlank()) {
+            statusFilters = Arrays.stream(statuses.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .map(PostStatus::valueOf)
+                    .toList();
+        }
+        return postService.listAll(statusFilters);
     }
 
-    // 수정 (부분 업데이트)
+    // 부분 수정
     @PatchMapping("/{id}")
     public PostResponse update(Authentication auth, @PathVariable Long id,
                                @RequestBody PostUpdateRequest req) {
@@ -46,7 +56,7 @@ public class PostController {
         return postService.update(id, requesterId, req);
     }
 
-    // 삭제 (소프트)
+    // 소프트 삭제
     @DeleteMapping("/{id}")
     public void delete(Authentication auth, @PathVariable Long id) {
         Long requesterId = Long.valueOf((String) auth.getPrincipal());

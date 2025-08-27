@@ -1,21 +1,22 @@
 package core.hackathon02api.auth.controller;
 
-import core.hackathon02api.auth.dto.NotificationListResponse;
 import core.hackathon02api.auth.dto.NotificationItemResponse;
+import core.hackathon02api.auth.dto.NotificationListResponse;
 import core.hackathon02api.auth.dto.NotificationUpdatesResponse;
 import core.hackathon02api.auth.entity.NotificationType;
 import core.hackathon02api.auth.service.NotificationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.List;
 
+/**
+ * 알림 Full-Fetch 전용 컨트롤러
+ * - X-USER-ID 헤더로 사용자 식별(운영에서는 토큰 기반 권장)
+ */
 @RestController
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
@@ -23,55 +24,47 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
-    // 알림 목록 (무한 스크롤, hasMore 없음)
+    // 전체 조회 (isRead, types는 선택)
+    // 예: GET /api/notifications
+    //     GET /api/notifications?isRead=false
+    //     GET /api/notifications?types=APPROVED,REJECTED
     @GetMapping
-    public NotificationListResponse list(
-            //@AuthenticationPrincipal(expression = "id") Long userId,
-            Authentication auth,
-            @RequestParam(required = false) Long lastId,
-            @RequestParam(required = false) Integer limit,
+    public ResponseEntity<NotificationListResponse> listAll(
+            @RequestHeader("X-USER-ID") Long userId,
             @RequestParam(required = false) Boolean isRead,
-            @RequestParam(required = false) List<NotificationType> type
+            @RequestParam(required = false) List<NotificationType> types
     ) {
-        Long uid = resolveUserId(null, auth);
-        return notificationService.list(uid, lastId, limit, isRead, type);
+        var resp = notificationService.listAll(userId, isRead, types);
+        return ResponseEntity.ok(resp);
     }
 
-    // 알림 읽음 처리
+    // 단건 읽음 처리
     @PostMapping("/{notificationId}/read")
-    public NotificationItemResponse markRead(
-            //@AuthenticationPrincipal(expression = "id") Long userId,
-            Authentication auth,
+    public ResponseEntity<NotificationItemResponse> markRead(
+            @RequestHeader("X-USER-ID") Long userId,
             @PathVariable Long notificationId
     ) {
-        Long uid = resolveUserId(null, auth);
-        return notificationService.markRead(uid, notificationId);
+        var resp = notificationService.markRead(userId, notificationId);
+        return ResponseEntity.ok(resp);
     }
 
-    // 새로고침 폴링
+    // 폴링(새 알림)
+    // 예: GET /api/notifications/updates?since=2025-08-20T00:00:00Z
     @GetMapping("/updates")
-    public NotificationUpdatesResponse updates(
-            //@AuthenticationPrincipal(expression = "id") Long userId,
-            Authentication auth,
-            @RequestParam Instant since
+    public ResponseEntity<NotificationUpdatesResponse> updates(
+            @RequestHeader("X-USER-ID") Long userId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant since
     ) {
-        Long uid = resolveUserId(null, auth);
-        return notificationService.updates(uid, since);
+        var resp = notificationService.updates(userId, since);
+        return ResponseEntity.ok(resp);
     }
 
-    private Long resolveUserId(Long injected, Authentication auth) {
-        if (injected != null) return injected;
-        if (auth == null || auth.getPrincipal() == null)
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
-        Object p = auth.getPrincipal();
-        if (p instanceof String s) {
-            try { return Long.valueOf(s); }
-            catch (NumberFormatException e) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "유효하지 않은 인증 정보입니다.");
-            }
-        }
-        // 필요 시 CustomUserDetails 캐스팅
-        // return ((CustomUserDetails) p).getId();
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "유효하지 않은 인증 주체입니다.");
+    // 미읽음 카운트
+    @GetMapping("/unread/count")
+    public ResponseEntity<Long> unreadCount(
+            @RequestHeader("X-USER-ID") Long userId
+    ) {
+        long cnt = notificationService.countUnread(userId);
+        return ResponseEntity.ok(cnt);
     }
 }
