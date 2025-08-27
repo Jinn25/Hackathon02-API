@@ -11,5 +11,6 @@ public record PostSearchItemResponse(
         Integer desiredMemberCount,
         String status,       // OPEN/FULL/...
         String createdAt,
-        String roadAddress       // ✅ 추가
+        String roadAddress,    // 추가
+        String content
 ) {}
