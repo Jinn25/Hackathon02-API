@@ -54,13 +54,13 @@ public class PostSearchService {
                         ));
 
         var items = posts.stream().map(p -> {
-            Long price = extractPriceSafely(p);         // 반사 안전하게 (없으면 null)
+            Long price = extractPriceSafely(p);
             String imageUrl = resolveImageUrl(p);
             Integer current = currentByPost.getOrDefault(p.getId(), 1); // 최소 작성자 1
             Integer desired = Optional.ofNullable(p.getDesiredMemberCount()).orElse(0);
-            String createdAt = toIsoStringSafely(p);    // 어떤 타입이든 문자열 변환
-
+            String createdAt = toIsoStringSafely(p);
             String roadAddress = (p.getAuthor() != null) ? p.getAuthor().getRoadAddress() : null;
+
             return new PostSearchItemResponse(
                     p.getId(),
                     p.getTitle(),
@@ -72,7 +72,8 @@ public class PostSearchService {
                     desired,
                     String.valueOf(p.getStatus()),
                     createdAt,
-                    roadAddress
+                    roadAddress,
+                    p.getContent()
             );
         }).toList();
 
