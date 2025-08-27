@@ -13,8 +13,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
 
@@ -24,45 +22,43 @@ public class ChatMessageService {
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final UserRepository userRepository;
-
     private final SimpMessagingTemplate messagingTemplate;
 
     public void saveAndBroadcast(Long roomId, ChatMessageDto dto) {
-        // 1. 엔티티 조회
+        // 1) 엔티티 조회
         ChatRoom room = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
         User sender = userRepository.findById(dto.getSenderId())
                 .orElseThrow(() -> new IllegalArgumentException("보낸 사용자가 존재하지 않습니다."));
 
-        // 2. DB 저장
+        // 2) 저장
         ChatMessage message = ChatMessage.builder()
                 .room(room)
                 .sender(sender)
                 .content(dto.getContent())
-                .createdAt(OffsetDateTime.now())
+                // 엔티티가 OffsetDateTime라면 여기서 now()로 세팅하거나 @PrePersist 사용
                 .build();
-        chatMessageRepository.save(message);
+        ChatMessage saved = chatMessageRepository.save(message);
 
-        // 3. 구독자에게 브로드캐스트
-        messagingTemplate.convertAndSend(
-                "/sub/chatrooms/" + roomId,
-                new ChatMessageDto(
-                        roomId,
-                        sender.getId(),
-                        sender.getNickname(),
-                        message.getContent(),
-                        message.getCreatedAt().toLocalDateTime()
-                )
+        // 3) 브로드캐스트 (빌더 사용)
+        ChatMessageDto out = ChatMessageDto.builder()
+                .messageId(saved.getId()) // ★ 프론트 중복제거/키용
+                .roomId(roomId)
+                .senderId(sender.getId())
+                .senderNickname(sender.getNickname())
+                .content(saved.getContent())
+                .createdAt(saved.getCreatedAt().toLocalDateTime())
+                .build();
 
-        );
-        System.out.println("브로드캐스트 실행됨: " + dto.getContent());
+        messagingTemplate.convertAndSend("/sub/chatrooms/" + roomId, out);
+        System.out.println("브로드캐스트 실행됨: " + out.getContent());
     }
 
     @Transactional
     public List<ChatMessage> findRecentMessages(Long roomId, int limit) {
         return chatMessageRepository.findByRoom_IdOrderByCreatedAtDesc(
                 roomId,
-                PageRequest.of(0, limit) // limit 개수만큼
+                PageRequest.of(0, limit)
         );
     }
 
@@ -72,16 +68,17 @@ public class ChatMessageService {
                         roomId,
                         PageRequest.of(0, limit)
                 ).stream()
-                .map(m -> new ChatMessageDto(
-                        m.getRoom().getId(),
-                        m.getSender().getId(),
-                        m.getSender().getNickname(),
-                        m.getContent(),
-                        m.getCreatedAt().toLocalDateTime()
-                ))
-                .sorted(Comparator.comparing(ChatMessageDto::getCreatedAt)) // 오래된 것 → 최신 순
+                .map(m -> ChatMessageDto.builder()
+                        .messageId(m.getId()) // ★ 추가
+                        .roomId(m.getRoom().getId())
+                        .senderId(m.getSender().getId())
+                        .senderNickname(m.getSender().getNickname())
+                        .content(m.getContent())
+                        .createdAt(m.getCreatedAt().toLocalDateTime())
+                        .build()
+                )
+                // 오래된 것 → 최신
+                .sorted(Comparator.comparing(ChatMessageDto::getCreatedAt))
                 .toList();
     }
-
-
 }

@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class ChatMessageDto {
+    private Long messageId;          // 추가
     private Long roomId;
     private Long senderId;
     private String senderNickname;
