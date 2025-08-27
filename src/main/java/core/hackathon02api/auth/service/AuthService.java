@@ -52,6 +52,7 @@ public class AuthService {
         return new LoginResponse(
                 token,
                 user.getId(),
+                user.getUsername(),
                 user.getNickname(),
                 user.getRoadAddress(),
                 interests
