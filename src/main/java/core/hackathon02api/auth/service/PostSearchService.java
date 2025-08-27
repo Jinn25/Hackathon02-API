@@ -60,6 +60,7 @@ public class PostSearchService {
             Integer desired = Optional.ofNullable(p.getDesiredMemberCount()).orElse(0);
             String createdAt = toIsoStringSafely(p);    // 어떤 타입이든 문자열 변환
 
+            String roadAddress = (p.getAuthor() != null) ? p.getAuthor().getRoadAddress() : null;
             return new PostSearchItemResponse(
                     p.getId(),
                     p.getTitle(),
@@ -70,7 +71,8 @@ public class PostSearchService {
                     current,
                     desired,
                     String.valueOf(p.getStatus()),
-                    createdAt
+                    createdAt,
+                    roadAddress
             );
         }).toList();
 

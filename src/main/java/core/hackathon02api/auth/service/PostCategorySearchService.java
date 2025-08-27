@@ -70,6 +70,9 @@ public class PostCategorySearchService {
             Integer desired = Optional.ofNullable(p.getDesiredMemberCount()).orElse(0);
             String createdAt = toIsoStringSafely(p);
 
+            // ✅ 동일하게 roadAddress 채우기
+            String roadAddress = (p.getAuthor() != null) ? p.getAuthor().getRoadAddress() : null;
+
             return new PostSearchItemResponse(
                     p.getId(),
                     p.getTitle(),
@@ -80,7 +83,8 @@ public class PostCategorySearchService {
                     current,
                     desired,
                     String.valueOf(p.getStatus()),
-                    createdAt
+                    createdAt,
+                    roadAddress
             );
         }).toList();
 
