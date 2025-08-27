@@ -85,13 +85,12 @@ public class NotificationService {
             Integer desired = p != null ? Optional.ofNullable(p.getDesiredMemberCount()).orElse(0) : null;
             Integer current = p != null ? currentByPost.getOrDefault(p.getId(), null) : null;
 
-            Long price = null;
+            String productDesc = null;
             if (p != null) {
                 try {
-                    // Post에 price 필드가 있다면 사용 (없으면 null 유지)
-                    var m = Post.class.getMethod("getPrice");
+                    var m = Post.class.getMethod("getProductDesc"); // Post 엔티티에 productDesc 필드/메서드 있다고 가정
                     Object v = m.invoke(p);
-                    if (v instanceof Number num) price = num.longValue();
+                    if (v instanceof String s) productDesc = s;
                 } catch (Exception ignore) {}
             }
 
@@ -113,7 +112,7 @@ public class NotificationService {
                     postTitle,
                     current,
                     desired,
-                    price,
+                    productDesc,
                     imageUrl,
                     n.isRead(),
                     n.getCreatedAt()

@@ -15,7 +15,7 @@ public record NotificationItemResponse(
         String postTitle,            // 게시글 제목
         Integer currentMemberCount,  // 신청 인원(작성자 + 승인 인원)
         Integer desiredMemberCount,  // 모집 인원
-        Long price,                  // 가격 (없으면 null)
+        String productDesc,                  // 가격 (없으면 null)
         String imageUrl,             // 대표 이미지 1장 (없으면 null)
 
         boolean isRead,
@@ -26,7 +26,7 @@ public record NotificationItemResponse(
             String postTitle,            // 게시글 제목
             Integer currentMemberCount,  // 신청 인원(작성자 + 승인)
             Integer desiredMemberCount,  // 모집 인원
-            Long price,                  // 가격(KRW)
+            String productDesc,                  // 가격(KRW)
             String imageUrl              // 대표 이미지
     ) {
         return new NotificationItemResponse(
@@ -39,7 +39,7 @@ public record NotificationItemResponse(
                 postTitle,
                 currentMemberCount,
                 desiredMemberCount,
-                price,
+                productDesc,
                 imageUrl,
 
                 n.isRead(),
