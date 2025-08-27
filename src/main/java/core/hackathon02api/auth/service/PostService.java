@@ -7,7 +7,9 @@ import core.hackathon02api.auth.entity.User;
 import core.hackathon02api.auth.repository.PostApplicationRepository;
 import core.hackathon02api.auth.repository.PostRepository;
 import core.hackathon02api.auth.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -142,5 +144,16 @@ public class PostService {
         response.setCreatedAt(post.getCreatedAt());
 
         return response;
+    }
+
+    public void delete(Long postId, Long requesterId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다."));
+
+//        if (!post.isOwner(requesterId)) {
+//            throw new AccessDeniedException("삭제 권한이 없습니다.");
+//        }
+
+        postRepository.delete(post); // 완전 삭제
     }
 }

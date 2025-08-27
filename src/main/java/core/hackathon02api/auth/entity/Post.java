@@ -62,6 +62,11 @@ public class Post {
     private List<PostApplication> applications = new ArrayList<>();
 
 
+//    // === 편의 메서드 ===
+//    public boolean isOwner(Long userId) {
+//        return this.authorId != null && this.authorId.equals(userId);
+//    }
+
 
 
 }

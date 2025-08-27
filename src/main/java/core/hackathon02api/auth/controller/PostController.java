@@ -7,6 +7,7 @@ import core.hackathon02api.auth.entity.PostStatus;
 import core.hackathon02api.auth.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,10 +57,12 @@ public class PostController {
         return postService.update(id, requesterId, req);
     }
 
-    // 소프트 삭제
+    // 게시글 완전 삭제 (작성자 본인만)
     @DeleteMapping("/{id}")
-    public void delete(Authentication auth, @PathVariable Long id) {
+    public ResponseEntity<Void> delete(Authentication auth, @PathVariable Long id) {
         Long requesterId = Long.valueOf((String) auth.getPrincipal());
-        postService.softDelete(id, requesterId);
+        postService.delete(id, requesterId);
+        return ResponseEntity.noContent().build(); // 204
     }
+
 }
