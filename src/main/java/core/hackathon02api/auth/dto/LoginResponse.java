@@ -10,6 +10,7 @@ import java.util.List;
 public class LoginResponse {
     private String token;
     private Long userId;
+    private String username;
     private String nickname;
     private String roadAddress;
     private List<String> interests;
