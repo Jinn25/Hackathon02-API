@@ -29,7 +29,9 @@ public class SecurityConfig {
                     CorsConfiguration config = new CorsConfiguration();
                     config.setAllowedOrigins(List.of("http://localhost:3000",
                             "https://dododokk.github.io")); // 프론트 주소
-                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    // ✅ PATCH 추가
+                    config.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
+                    // 권장: 필요한 헤더만 명시 (브라우저 프리플라이트 일치)
                     config.setAllowedHeaders(List.of("*"));
                     config.setAllowCredentials(true); // Authorization 허용
                     config.setExposedHeaders(List.of("Authorization"));
