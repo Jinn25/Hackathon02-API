@@ -100,7 +100,16 @@ public class MyChatRoomService {
 
         ChatMessage last = chatMessageRepository.findTopByRoom_IdOrderByIdDesc(room.getId()).orElse(null);
 
-        long unread;
+
+        // ✅ 마지막 메시지까지 읽음 처리
+        if (last != null) {
+            if (member.getLastReadMessageId() == null || last.getId() > member.getLastReadMessageId()) {
+                member.setLastReadMessageId(last.getId());
+            }
+        }
+
+
+        long unread = 0; // ✅ 방에 들어가면 무조건 0으로
         if (member.getLastReadMessageId() == null) {
             unread = (last == null) ? 0 : chatMessageRepository.countByRoom_Id(room.getId());
         } else {
