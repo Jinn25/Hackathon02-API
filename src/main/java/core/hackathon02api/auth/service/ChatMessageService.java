@@ -24,6 +24,7 @@ public class ChatMessageService {
     private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
+    @Transactional
     public void saveAndBroadcast(Long roomId, ChatMessageDto dto) {
         // 1) 엔티티 조회
         ChatRoom room = chatRoomRepository.findById(roomId)
