@@ -3,6 +3,7 @@ package core.hackathon02api.auth.service;
 import core.hackathon02api.auth.dto.MyPagePostCard;
 import core.hackathon02api.auth.dto.PostResponse;
 import core.hackathon02api.auth.entity.ApplicationStatus;
+import core.hackathon02api.auth.entity.Post;
 import core.hackathon02api.auth.entity.PostApplication;
 import core.hackathon02api.auth.entity.PostStatus;
 import core.hackathon02api.auth.repository.PostApplicationRepository;
@@ -13,7 +14,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -30,26 +33,36 @@ public class MyPageService {
         return (int) approvedOrJoined + 1;
     }
 
-    /** 신청중: 내가 APPROVED 이고, 게시글이 OPEN */
+    /** 신청중: (내가 APPROVED & 글이 OPEN)  ∪  (내가 작성 & 글이 OPEN) */
     public List<PostResponse> getAppliedOngoing(Long userId) {
-        var apps = postApplicationRepository.findAllByApplicant_IdAndStatusAndPost_Status(
-                userId, ApplicationStatus.APPROVED, PostStatus.OPEN
-        );
-        return apps.stream()
+        var appliedOpenPosts = postApplicationRepository
+                .findAllByApplicant_IdAndStatusAndPost_Status(
+                        userId, ApplicationStatus.APPROVED, PostStatus.OPEN
+                ).stream()
                 .map(PostApplication::getPost)
-                .distinct()
+                .toList();
+
+        var myOpenPosts = postRepository
+                .findAllByAuthor_IdAndStatus(userId, PostStatus.OPEN);
+
+        return mergeDistinctByPostId(appliedOpenPosts, myOpenPosts).stream()
                 .map(p -> PostResponse.of(p, currentCountWithAuthor(p.getId())))
                 .toList();
     }
 
-    /** 완료됨: 내가 APPROVED 이고, 게시글이 FULL */
+    /** 완료됨: (내가 APPROVED & 글이 FULL)  ∪  (내가 작성 & 글이 FULL) */
     public List<PostResponse> getAppliedCompleted(Long userId) {
-        var apps = postApplicationRepository.findAllByApplicant_IdAndStatusAndPost_Status(
-                userId, ApplicationStatus.APPROVED, PostStatus.FULL
-        );
-        return apps.stream()
+        var appliedFullPosts = postApplicationRepository
+                .findAllByApplicant_IdAndStatusAndPost_Status(
+                        userId, ApplicationStatus.APPROVED, PostStatus.FULL
+                ).stream()
                 .map(PostApplication::getPost)
-                .distinct()
+                .toList();
+
+        var myFullPosts = postRepository
+                .findAllByAuthor_IdAndStatus(userId, PostStatus.FULL);
+
+        return mergeDistinctByPostId(appliedFullPosts, myFullPosts).stream()
                 .map(p -> PostResponse.of(p, currentCountWithAuthor(p.getId())))
                 .toList();
     }
@@ -60,4 +73,14 @@ public class MyPageService {
                 .map(p -> PostResponse.of(p, currentCountWithAuthor(p.getId())))
                 .toList();
     }
+
+    // postId 기준 distinct 유틸
+    private List<Post> mergeDistinctByPostId(List<Post> a, List<Post> b) {
+        Map<Long, Post> map = new LinkedHashMap<>();
+        a.forEach(p -> map.putIfAbsent(p.getId(), p));
+        b.forEach(p -> map.putIfAbsent(p.getId(), p));
+        return List.copyOf(map.values());
+    }
+
+
 }

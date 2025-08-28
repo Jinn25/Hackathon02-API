@@ -47,4 +47,11 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostSearchRep
     List<PostApplication> findCompletedApplicationsByApplicant(
             @Param("userId") Long userId
     );
+
+    // 추가: 상태로도 필터
+    List<Post> findAllByAuthor_IdAndStatus(Long authorId, PostStatus status);
+
+
+
+
 }
