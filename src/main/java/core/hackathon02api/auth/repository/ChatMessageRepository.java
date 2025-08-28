@@ -17,4 +17,9 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     List<ChatMessage> findByRoom_IdOrderByCreatedAtDesc(Long roomId, Pageable pageable);
 
     List<ChatMessage> findTop50ByRoomIdOrderByCreatedAtDesc(Long roomId);
+
+    long countByRoom_IdAndIdGreaterThanAndSender_IdNot(Long roomId, Long lastReadId, Long notSenderId);
+    long countByRoom_IdAndSender_IdNot(Long roomId, Long notSenderId); // lastRead가 null일 때
+
+
 }

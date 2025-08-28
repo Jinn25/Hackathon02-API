@@ -120,12 +120,17 @@ public class ChatRoomService {
         // 3) 마지막 메시지/미읽음 계산
         ChatMessage last = chatMessageRepository.findTopByRoom_IdOrderByIdDesc(room.getId()).orElse(null);
 
+        Long meId = user.getId();
+        Long lastReadId = member.getLastReadMessageId();
+
         long unread;
-        if (member.getLastReadMessageId() == null) {
-            unread = (last == null) ? 0 : chatMessageRepository.countByRoom_Id(room.getId());
+        if (lastReadId == null) {
+            // 내 메시지는 제외하고 방 전체에서 카운트
+            unread = chatMessageRepository.countByRoom_IdAndSender_IdNot(room.getId(), meId);
         } else {
-            unread = chatMessageRepository.countByRoom_IdAndIdGreaterThan(
-                    room.getId(), member.getLastReadMessageId());
+            // lastRead 이후의 메시지 중에서, 내 메시지는 제외
+            unread = chatMessageRepository.countByRoom_IdAndIdGreaterThanAndSender_IdNot(
+                    room.getId(), lastReadId, meId);
         }
 
         ChatRoomEnterResponse.LastMessage lastDto = null;
@@ -219,6 +224,18 @@ public class ChatRoomService {
     }
 
 
+    @Transactional
+    public void updateReadCursor(Long userId, Long roomId, Long lastReadMessageId) {
+        ChatMember m = chatMemberRepository.findByRoom_IdAndUser_Id(roomId, userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "not a member"));
+        if (lastReadMessageId == null) return;
+
+        // 뒤로만 전진
+        if (m.getLastReadMessageId() == null || m.getLastReadMessageId() < lastReadMessageId) {
+            m.setLastReadMessageId(lastReadMessageId);
+            chatMemberRepository.save(m);
+        }
+    }
 
 
     @Getter

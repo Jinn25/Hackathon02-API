@@ -5,7 +5,11 @@ import core.hackathon02api.auth.service.ChatRoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/posts/{postId}/chatroom")
@@ -35,4 +39,21 @@ public class ChatRoomController {
                 ? ResponseEntity.status(201).body(result.getResponse())
                 : ResponseEntity.ok(result.getResponse());
     }
+
+    @PatchMapping("/{roomId}/read-cursor")
+    public ResponseEntity<Void> patchCursor(
+            @AuthenticationPrincipal UserDetails user,
+            @PathVariable Long roomId,
+            @RequestBody Map<String, Long> body
+    ) {
+        Long lastReadMessageId = body.get("lastReadMessageId");
+        chatRoomService.updateReadCursor(
+                Long.valueOf(user.getUsername()), // username을 userId로 쓰고 있다면
+                roomId,
+                lastReadMessageId
+        );
+        return ResponseEntity.noContent().build();
+    }
+
+
 }
