@@ -247,6 +247,22 @@ public class ChatRoomService {
         }
     }
 
+    @Transactional
+    public void markAllRead(Long userId, Long roomId) {
+        ChatMember m = chatMemberRepository.findByRoom_IdAndUser_Id(roomId, userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "not a member"));
+
+        ChatMessage last = chatMessageRepository.findTopByRoom_IdOrderByIdDesc(roomId).orElse(null);
+        if (last == null) return;
+
+        Long lastId = last.getId();
+        if (m.getLastReadMessageId() == null || m.getLastReadMessageId() < lastId) {
+            m.setLastReadMessageId(lastId);
+            chatMemberRepository.save(m);
+        }
+    }
+
+
 
     @Getter
     @RequiredArgsConstructor
