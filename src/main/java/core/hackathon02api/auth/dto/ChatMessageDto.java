@@ -3,6 +3,7 @@ package core.hackathon02api.auth.dto;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Getter
 @Setter
@@ -15,6 +16,6 @@ public class ChatMessageDto {
     private Long senderId;
     private String senderNickname;
     private String content;
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 
 }
