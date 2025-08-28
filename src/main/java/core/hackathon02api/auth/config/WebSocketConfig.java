@@ -25,7 +25,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         "http://127.0.0.1:*",
                         "https://*.railway.app",
                         "https://*.github.io",
-                        "https://dododokk.github.io/Hackathon02-React"
+                        "https://dododokk.github.io"
                 )
                 .withSockJS(); // SockJS fallback 활성화
     }
