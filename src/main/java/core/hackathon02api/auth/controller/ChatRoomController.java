@@ -2,6 +2,7 @@ package core.hackathon02api.auth.controller;
 
 import core.hackathon02api.auth.dto.ChatRoomEnterResponse;
 import core.hackathon02api.auth.service.ChatRoomService;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -40,20 +41,6 @@ public class ChatRoomController {
                 : ResponseEntity.ok(result.getResponse());
     }
 
-    @PatchMapping("/{roomId}/read-cursor")
-    public ResponseEntity<Void> patchCursor(
-            @AuthenticationPrincipal UserDetails user,
-            @PathVariable Long roomId,
-            @RequestBody Map<String, Long> body
-    ) {
-        Long lastReadMessageId = body.get("lastReadMessageId");
-        chatRoomService.updateReadCursor(
-                Long.valueOf(user.getUsername()), // username을 userId로 쓰고 있다면
-                roomId,
-                lastReadMessageId
-        );
-        return ResponseEntity.noContent().build();
-    }
 
 
 }

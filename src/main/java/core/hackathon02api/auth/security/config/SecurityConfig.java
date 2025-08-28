@@ -86,6 +86,7 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/ws/**").permitAll() // ✅ 웹소켓/ SockJS info 등 허용
                         .requestMatchers("/api/notifications/**").authenticated()
+                        .requestMatchers("/api/chatrooms/*/read-cursor").authenticated()
                         .anyRequest().permitAll()
                 );
 
