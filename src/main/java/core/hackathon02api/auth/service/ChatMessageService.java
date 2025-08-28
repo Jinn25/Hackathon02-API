@@ -17,7 +17,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
-
+// 추가 (필요 시)
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 @Service
 @RequiredArgsConstructor
 public class ChatMessageService {
@@ -55,18 +57,18 @@ public class ChatMessageService {
                     }
                 });
 
-        // 3) 브로드캐스트 (빌더 사용)
+        // ✅ createdAt 을 OffsetDateTime 그대로 사용 (필요하면 +09:00 로 보정)
+        OffsetDateTime created = saved.getCreatedAt() != null
+                ? saved.getCreatedAt().withOffsetSameInstant(ZoneOffset.ofHours(9)) // 클라가 KST 원하면 유지
+                : OffsetDateTime.now(ZoneOffset.ofHours(9));
+
         ChatMessageDto out = ChatMessageDto.builder()
-                .messageId(saved.getId()) // ★ 프론트 중복제거/키용
+                .messageId(saved.getId())
                 .roomId(roomId)
                 .senderId(sender.getId())
                 .senderNickname(sender.getNickname())
                 .content(saved.getContent())
-                .createdAt(
-                        saved.getCreatedAt() != null
-                                ? saved.getCreatedAt().toLocalDateTime()
-                                : LocalDateTime.now()
-                )
+                .createdAt(created) // << 절대 toLocalDateTime() 쓰지 않기
                 .build();
 
         System.out.println("createdAt: " + saved.getCreatedAt());
@@ -84,22 +86,22 @@ public class ChatMessageService {
 
     @Transactional
     public List<ChatMessageDto> findRecentMessagesDto(Long roomId, int limit) {
-        return chatMessageRepository.findByRoom_IdOrderByCreatedAtDesc(
-                        roomId,
-                        PageRequest.of(0, limit)
-                ).stream()
-                .map(m -> ChatMessageDto.builder()
-                        .messageId(m.getId())
-                        .roomId(m.getRoom() != null ? m.getRoom().getId() : null)
-                        .senderId(m.getSender() != null ? m.getSender().getId() : null)
-                        .senderNickname(m.getSender() != null ? m.getSender().getNickname() : "알 수 없음")
-                        .content(m.getContent())
-                        .createdAt(m.getCreatedAt() != null
-                                ? m.getCreatedAt().toLocalDateTime()
-                                : LocalDateTime.now())
-                        .build()
-                )
-                // 오래된 것 → 최신
+        return chatMessageRepository.findByRoom_IdOrderByCreatedAtDesc(roomId, PageRequest.of(0, limit))
+                .stream()
+                .map(m -> {
+                    OffsetDateTime created = m.getCreatedAt() != null
+                            ? m.getCreatedAt().withOffsetSameInstant(ZoneOffset.ofHours(9))
+                            : OffsetDateTime.now(ZoneOffset.ofHours(9));
+                    return ChatMessageDto.builder()
+                            .messageId(m.getId())
+                            .roomId(m.getRoom() != null ? m.getRoom().getId() : null)
+                            .senderId(m.getSender() != null ? m.getSender().getId() : null)
+                            .senderNickname(m.getSender() != null ? m.getSender().getNickname() : "알 수 없음")
+                            .content(m.getContent())
+                            .createdAt(created)
+                            .build();
+                })
+                // 오래된 것 → 최신 (리포지토리에서 이미 desc 이면 이 정렬은 선택)
                 .sorted(Comparator.comparing(ChatMessageDto::getCreatedAt))
                 .toList();
     }
