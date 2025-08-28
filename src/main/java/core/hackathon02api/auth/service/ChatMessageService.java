@@ -7,12 +7,13 @@ import core.hackathon02api.auth.entity.User;
 import core.hackathon02api.auth.repository.ChatMessageRepository;
 import core.hackathon02api.auth.repository.ChatRoomRepository;
 import core.hackathon02api.auth.repository.UserRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 
@@ -48,9 +49,14 @@ public class ChatMessageService {
                 .senderId(sender.getId())
                 .senderNickname(sender.getNickname())
                 .content(saved.getContent())
-                .createdAt(saved.getCreatedAt().toLocalDateTime())
+                .createdAt(
+                        saved.getCreatedAt() != null
+                                ? saved.getCreatedAt().toLocalDateTime()
+                                : LocalDateTime.now()
+                )
                 .build();
 
+        System.out.println("createdAt: " + saved.getCreatedAt());
         messagingTemplate.convertAndSend("/sub/chatrooms/" + roomId, out);
         System.out.println("브로드캐스트 실행됨: " + out.getContent());
     }
