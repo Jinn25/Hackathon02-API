@@ -92,6 +92,18 @@ public class ChatRoomService {
             }
         }
 
+        // ✅ 방 생성 직후이든, 아니든: 정원 기준으로 상태 승격 + 멤버 동기화
+        finalizeGroupAndSyncMembers(room, post);
+
+        // 이후 권한 체크 (HOST or APPROVED/JOINED 만 입장 허용)
+        //boolean isHost = post.getAuthor().getId().equals(userId);
+//        boolean approvedOrJoined = postApplicationRepository.existsByPost_IdAndApplicant_IdAndStatusIn(
+//                postId, userId, java.util.List.of(ApplicationStatus.APPROVED, ApplicationStatus.JOINED)
+//        );
+        if (!isHost && !approvedOrJoined) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "no permission to enter chatroom");
+        }
+
         // 2) 입장 사용자 멤버십 보장(없으면 생성)
         ChatMember.Role role = isHost ? ChatMember.Role.HOST : ChatMember.Role.MEMBER;
 
@@ -146,6 +158,68 @@ public class ChatRoomService {
 
         return new Result(dto, created);
     }
+
+    @Transactional
+    void finalizeGroupAndSyncMembers(ChatRoom room, Post post) {
+        int desired = post.getDesiredMemberCount() == null ? 0 : post.getDesiredMemberCount();
+        if (desired <= 0) return;
+
+        // 작성자 포함 정책 가정: 호스트 1명 + (desired - 1)명 승격
+        int memberSlots = Math.max(0, desired - 1);
+
+        // 1) 신청자 전체를 생성 순으로 가져와 상위 N명 승격
+        var allApps = postApplicationRepository.findAllByPost_IdOrderByIdAsc(post.getId());
+
+        // 이미 JOINED/APPROVED 인원 수 계산
+        int alreadyIn =
+                (int) allApps.stream().filter(a ->
+                        a.getStatus() == ApplicationStatus.JOINED
+                                || a.getStatus() == ApplicationStatus.APPROVED
+                ).count();
+
+        // 모자란 인원만큼 APPLIED 중에서 앞사람부터 승격
+        int toPromote = Math.max(0, memberSlots - alreadyIn);
+
+        for (PostApplication pa : allApps) {
+            if (toPromote == 0) break;
+            if (pa.getStatus() == ApplicationStatus.APPLIED) {
+                pa.setStatus(ApplicationStatus.JOINED); // 또는 APPROVED
+                toPromote--;
+            }
+        }
+        // 변경사항 저장
+        postApplicationRepository.saveAll(allApps);
+
+        // 2) (HOST + APPROVED/JOINED) 전원을 ChatMember 로 보장
+        //    HOST
+        if (!chatMemberRepository.existsByRoom_IdAndUser_Id(room.getId(), post.getAuthor().getId())) {
+            chatMemberRepository.save(ChatMember.builder()
+                    .room(room)
+                    .user(post.getAuthor())
+                    .role(ChatMember.Role.HOST)
+                    .build());
+        }
+
+        //    참여자들
+        var joinedOrApproved = allApps.stream().filter(a ->
+                a.getStatus() == ApplicationStatus.JOINED
+                        || a.getStatus() == ApplicationStatus.APPROVED
+        ).toList();
+
+        for (PostApplication pa : joinedOrApproved) {
+            var uid = pa.getApplicant().getId();
+            if (!chatMemberRepository.existsByRoom_IdAndUser_Id(room.getId(), uid)) {
+                chatMemberRepository.save(ChatMember.builder()
+                        .room(room)
+                        .user(pa.getApplicant())
+                        .role(ChatMember.Role.MEMBER)
+                        .build());
+            }
+        }
+    }
+
+
+
 
     @Getter
     @RequiredArgsConstructor

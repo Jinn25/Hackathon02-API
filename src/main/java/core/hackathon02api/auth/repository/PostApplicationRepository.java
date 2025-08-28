@@ -68,4 +68,8 @@ public interface PostApplicationRepository extends JpaRepository<PostApplication
     List<PostApplication> findAllByApplicant_IdAndStatusAndPost_Status(
             Long userId, ApplicationStatus status, PostStatus postStatus
     );
+
+
+    List<PostApplication> findAllByPost_IdOrderByIdAsc(Long postId);
+
 }
