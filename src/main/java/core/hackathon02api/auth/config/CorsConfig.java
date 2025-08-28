@@ -23,7 +23,7 @@ public class CorsConfig {
                 "http://localhost:5500",
                 "http://localhost:8080",
                 "https://hackathon02-api-production.up.railway.app",
-                "https://your-frontend-domain.example" // 배포 프론트
+                "https://dododokk.github.io/Hackathon02-React" // 배포 프론트
         ));
         c.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         c.setAllowedHeaders(List.of("*"));

@@ -36,7 +36,7 @@ public class SecurityConfig {
                             "http://127.0.0.1:*",
                             "https://*.railway.app",
                             "https://*.github.io",
-                            "https://YOUR_FRONT_DOMAIN" // 필요 시 정확한 배포 프론트 도메인
+                            "https://dododokk.github.io/Hackathon02-React" // 필요 시 정확한 배포 프론트 도메인
                     ));
                     config.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
                     config.setAllowedHeaders(List.of("*")); // 여기서 Authorization, Content-Type만 열지 말고 전부 허용

@@ -25,7 +25,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         "http://127.0.0.1:*",
                         "https://*.railway.app",
                         "https://*.github.io",
-                        "https://YOUR_FRONT_DOMAIN"
+                        "https://dododokk.github.io/Hackathon02-React"
                 )
                 .withSockJS(); // SockJS fallback 활성화
     }
@@ -36,7 +36,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.setApplicationDestinationPrefixes("/pub");
     }
 
-    
+
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
