@@ -76,12 +76,14 @@ public class ChatMessageService {
                         PageRequest.of(0, limit)
                 ).stream()
                 .map(m -> ChatMessageDto.builder()
-                        .messageId(m.getId()) // ★ 추가
-                        .roomId(m.getRoom().getId())
-                        .senderId(m.getSender().getId())
-                        .senderNickname(m.getSender().getNickname())
+                        .messageId(m.getId())
+                        .roomId(m.getRoom() != null ? m.getRoom().getId() : null)
+                        .senderId(m.getSender() != null ? m.getSender().getId() : null)
+                        .senderNickname(m.getSender() != null ? m.getSender().getNickname() : "알 수 없음")
                         .content(m.getContent())
-                        .createdAt(m.getCreatedAt().toLocalDateTime())
+                        .createdAt(m.getCreatedAt() != null
+                                ? m.getCreatedAt().toLocalDateTime()
+                                : LocalDateTime.now())
                         .build()
                 )
                 // 오래된 것 → 최신
