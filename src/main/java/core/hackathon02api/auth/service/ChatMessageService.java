@@ -45,7 +45,7 @@ public class ChatMessageService {
         ChatMessage saved = chatMessageRepository.save(message);
 
         // ✅ 2-1) 내가 보낸 메시지는 자동으로 읽음 처리
-        
+
         chatMemberRepository.findByRoom_IdAndUser_Id(roomId, sender.getId())
                 .ifPresent(member -> {
                     // 뒤로 가지 않도록 보장

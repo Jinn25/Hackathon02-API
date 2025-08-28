@@ -95,11 +95,6 @@ public class ChatRoomService {
         // ✅ 방 생성 직후이든, 아니든: 정원 기준으로 상태 승격 + 멤버 동기화
         finalizeGroupAndSyncMembers(room, post);
 
-        // 이후 권한 체크 (HOST or APPROVED/JOINED 만 입장 허용)
-        //boolean isHost = post.getAuthor().getId().equals(userId);
-//        boolean approvedOrJoined = postApplicationRepository.existsByPost_IdAndApplicant_IdAndStatusIn(
-//                postId, userId, java.util.List.of(ApplicationStatus.APPROVED, ApplicationStatus.JOINED)
-//        );
         if (!isHost && !approvedOrJoined) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "no permission to enter chatroom");
         }
@@ -143,6 +138,17 @@ public class ChatRoomService {
                     .build();
         }
 
+        // 채팅방 입장 시 → 현재 마지막 메시지를 읽은 걸로 처리
+        if (last != null) {
+            chatMemberRepository.findByRoom_IdAndUser_Id(room.getId(), user.getId())
+                    .ifPresent(cm -> {
+                        if (cm.getLastReadMessageId() == null || cm.getLastReadMessageId() < last.getId()) {
+                            cm.setLastReadMessageId(last.getId());
+                            chatMemberRepository.save(cm);
+                        }
+                    });
+        }
+
         ChatRoomEnterResponse dto = ChatRoomEnterResponse.builder()
                 .roomId(room.getId())
                 .postId(post.getId())
@@ -160,6 +166,10 @@ public class ChatRoomService {
                 .unreadCount(unread)
                 .desiredMemberCount(post.getDesiredMemberCount())
                 .build();
+
+
+
+
 
         return new Result(dto, created);
     }
