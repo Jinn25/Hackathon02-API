@@ -4,6 +4,7 @@ import core.hackathon02api.auth.dto.ChatMessageDto;
 import core.hackathon02api.auth.entity.ChatMessage;
 import core.hackathon02api.auth.entity.ChatRoom;
 import core.hackathon02api.auth.entity.User;
+import core.hackathon02api.auth.repository.ChatMemberRepository;
 import core.hackathon02api.auth.repository.ChatMessageRepository;
 import core.hackathon02api.auth.repository.ChatRoomRepository;
 import core.hackathon02api.auth.repository.UserRepository;
@@ -24,6 +25,7 @@ public class ChatMessageService {
     private final ChatRoomRepository chatRoomRepository;
     private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final ChatMemberRepository chatMemberRepository;
 
     @Transactional
     public void saveAndBroadcast(Long roomId, ChatMessageDto dto) {
@@ -41,6 +43,17 @@ public class ChatMessageService {
                 // 엔티티가 OffsetDateTime라면 여기서 now()로 세팅하거나 @PrePersist 사용
                 .build();
         ChatMessage saved = chatMessageRepository.save(message);
+
+        // ✅ 2-1) 내가 보낸 메시지는 자동으로 읽음 처리
+        
+        chatMemberRepository.findByRoom_IdAndUser_Id(roomId, sender.getId())
+                .ifPresent(member -> {
+                    // 뒤로 가지 않도록 보장
+                    if (member.getLastReadMessageId() == null || member.getLastReadMessageId() < saved.getId()) {
+                        member.setLastReadMessageId(saved.getId());
+                        chatMemberRepository.save(member);
+                    }
+                });
 
         // 3) 브로드캐스트 (빌더 사용)
         ChatMessageDto out = ChatMessageDto.builder()
