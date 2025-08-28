@@ -34,62 +34,6 @@ public class MyChatRoomService {
 
     private static final String WS_ENDPOINT = "ws://{host}/ws";
 
-//    public List<MyChatRoomItem> listMyRooms(Long userId) {
-//        userRepository.findById(userId).orElseThrow(
-//                () -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "user not found")
-//        );
-//
-//        List<ChatMember> memberships = chatMemberRepository.findByUser_Id(userId);
-//
-//        List<MyChatRoomItem> items = memberships.stream().map(m -> {
-//                    ChatRoom room = m.getRoom();
-//                    Post post = room.getPost();
-//
-//                    ChatMessage last = chatMessageRepository.findTopByRoom_IdOrderByIdDesc(room.getId()).orElse(null);
-//
-//                    long unread;
-//                    if (m.getLastReadMessageId() == null) {
-//                        unread = (last == null) ? 0 : chatMessageRepository.countByRoom_Id(room.getId());
-//                    } else {
-//                        unread = chatMessageRepository.countByRoom_IdAndIdGreaterThan(
-//                                room.getId(), m.getLastReadMessageId());
-//                    }
-//
-//                    MyChatRoomItem.LastMessage lastDto = null;
-//                    OffsetDateTime lastActivityAt = room.getCreatedAt();
-//                    if (last != null) {
-//                        lastActivityAt = last.getCreatedAt();
-//                        lastDto = MyChatRoomItem.LastMessage.builder()
-//                                .messageId(last.getId())
-//                                .senderId(last.getSender().getId())
-//                                .content(last.getContent())
-//                                .createdAt(last.getCreatedAt())
-//                                .build();
-//                    }
-//
-//                    return MyChatRoomItem.builder()
-//                            .roomId(room.getId())
-//                            .postId(post.getId())
-//                            .postTitle(post.getTitle())
-//                            .postMainImageUrl(post.getMainImageUrl()) // Post에 필드 있으면
-//                            .hostId(room.getHostId())
-//                            .role(m.getRole().name())
-//                            .lastMessage(lastDto)
-//                            .unreadCount(unread)
-//                            .createdAt(room.getCreatedAt())
-//                            .lastActivityAt(lastActivityAt)
-//                            .ws(MyChatRoomItem.WsInfo.builder()
-//                                    .endpoint(WS_ENDPOINT)
-//                                    .subscribe("/sub/chatrooms/" + room.getId())
-//                                    .publish("/pub/chatrooms/" + room.getId() + "/send")
-//                                    .build())
-//                            .build();
-//                }).sorted(Comparator.comparing(MyChatRoomItem::getLastActivityAt).reversed())
-//                .toList();
-//
-//        return items;
-//    }
-
     public List<MyChatRoomItem> listMyRooms(Long userId) {
         userRepository.findById(userId).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "user not found")
@@ -131,6 +75,7 @@ public class MyChatRoomService {
                             .postMainImageUrl(post.getMainImageUrl()) // 있을 때만
                             .hostId(room.getHostId())
                             .role(m.getRole().name())
+                            .desiredMemberCount(post.getDesiredMemberCount())
                             .lastMessage(lastDto)
                             .unreadCount(unread)
                             .createdAt(room.getCreatedAt())
@@ -188,6 +133,9 @@ public class MyChatRoomService {
                         .build())
                 .lastMessage(lastDto)
                 .unreadCount(unread)
+                .desiredMemberCount(post.getDesiredMemberCount())
+                .productDesc(post.getProductDesc())
+                .mainImageUrl(post.getMainImageUrl())
                 .build();
     }
 

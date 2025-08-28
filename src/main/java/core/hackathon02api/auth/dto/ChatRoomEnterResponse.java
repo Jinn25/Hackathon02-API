@@ -19,7 +19,8 @@ public class ChatRoomEnterResponse {
     private LastMessage lastMessage;
     private long unreadCount;
     private Integer desiredMemberCount;
-
+    private String productDesc;
+    private String mainImageUrl;
 
     @Getter @Builder
     public static class WsInfo {

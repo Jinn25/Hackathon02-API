@@ -17,6 +17,7 @@ public class MyChatRoomItem {
     private Long hostId;
 
     private String role; // "HOST" | "MEMBER"
+    private Integer desiredMemberCount;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private LastMessage lastMessage;
