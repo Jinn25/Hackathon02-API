@@ -18,6 +18,8 @@ public class ChatRoomEnterResponse {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private LastMessage lastMessage;
     private long unreadCount;
+    private Integer desiredMemberCount;
+
 
     @Getter @Builder
     public static class WsInfo {

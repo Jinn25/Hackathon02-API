@@ -24,17 +24,55 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        http
+//                .cors(cors -> cors.configurationSource(request -> {
+//                    CorsConfiguration config = new CorsConfiguration();
+//                    config.setAllowedOrigins(List.of("http://localhost:3000",
+//                            "https://dododokk.github.io")); // 프론트 주소
+//                    // ✅ PATCH 추가
+//                    config.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
+//                    // 권장: 필요한 헤더만 명시 (브라우저 프리플라이트 일치)
+//                    config.setAllowedHeaders(List.of("*"));
+//                    config.setAllowCredentials(true); // Authorization 허용
+//                    config.setExposedHeaders(List.of("Authorization"));
+//                    return config;
+//                }))
+//                .httpBasic(AbstractHttpConfigurer::disable)
+//                .csrf(AbstractHttpConfigurer::disable)
+//                .formLogin(AbstractHttpConfigurer::disable)
+//                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//                .authorizeHttpRequests(auth -> auth
+//                        .requestMatchers("/api/auth/**", "/actuator/health").permitAll()
+//                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/posts/**").permitAll() // ✅ 공개 조회
+//                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/posts/**").permitAll()
+//                        .requestMatchers("/api/posts/*/applications/**").permitAll()
+//                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+//                        .requestMatchers("/ws/**").permitAll() // ✅ 웹소켓 허용
+//                        .requestMatchers("/api/notifications/**").authenticated() // 알림은 인증 필요
+//                        .anyRequest().permitAll()
+//
+//
+//                );
+//
+//        http.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
+//                UsernamePasswordAuthenticationFilter.class);
+//
+//        return http.build();
         http
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
-                    config.setAllowedOrigins(List.of("http://localhost:3000",
-                            "https://dododokk.github.io")); // 프론트 주소
-                    // ✅ PATCH 추가
+                    // ✅ 패턴 기반으로 로컬/배포 모두 허용
+                    config.setAllowedOriginPatterns(List.of(
+                            "http://localhost:*",
+                            "http://127.0.0.1:*",
+                            "https://*.railway.app",
+                            "https://*.github.io",
+                            "https://YOUR_FRONT_DOMAIN" // 필요 시 정확한 배포 프론트 도메인
+                    ));
                     config.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
-                    // 권장: 필요한 헤더만 명시 (브라우저 프리플라이트 일치)
-                    config.setAllowedHeaders(List.of("*"));
-                    config.setAllowCredentials(true); // Authorization 허용
+                    config.setAllowedHeaders(List.of("Authorization","Content-Type","Accept","Origin","X-Requested-With"));
                     config.setExposedHeaders(List.of("Authorization"));
+                    config.setAllowCredentials(true);
                     return config;
                 }))
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -43,15 +81,12 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/actuator/health").permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/posts/**").permitAll() // ✅ 공개 조회
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/posts/**").permitAll()
                         .requestMatchers("/api/posts/*/applications/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/ws/**").permitAll() // ✅ 웹소켓 허용
-                        .requestMatchers("/api/notifications/**").authenticated() // 알림은 인증 필요
+                        .requestMatchers("/ws/**").permitAll() // ✅ 웹소켓/ SockJS info 등 허용
+                        .requestMatchers("/api/notifications/**").authenticated()
                         .anyRequest().permitAll()
-
-
                 );
 
         http.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),

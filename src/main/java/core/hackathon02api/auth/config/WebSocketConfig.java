@@ -30,16 +30,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("http://localhost:5500", "http://127.0.0.1:5500")
                 .setAllowedOriginPatterns(
-                "http://localhost:3000",
-                "http://127.0.0.1:3000",
-                "http://localhost:5500",
-                "http://127.0.0.1:5500",
-                "https://*.railway.app",
-                "https://YOUR_FRONT_DOMAIN" // 배포 프론트 도메인
+                        "http://localhost:*",
+                        "http://127.0.0.1:*",
+                        "https://*.railway.app",
+                        "https://*.github.io",
+                        "https://YOUR_FRONT_DOMAIN"
                 )
-
                 .withSockJS(); // SockJS fallback 활성화
     }
 

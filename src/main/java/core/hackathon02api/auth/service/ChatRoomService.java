@@ -141,6 +141,7 @@ public class ChatRoomService {
                         .build())
                 .lastMessage(lastDto)
                 .unreadCount(unread)
+                .desiredMemberCount(post.getDesiredMemberCount())
                 .build();
 
         return new Result(dto, created);
